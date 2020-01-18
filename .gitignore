@@ -1,0 +1,5 @@
+node_modules
+server/node_modules
+server/.env
+.env
+server/google-cloud-access.json
