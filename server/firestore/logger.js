@@ -10,5 +10,9 @@ module.exports = {
     logLoginAttempt: async function(attempt){
         let newLog = await db.collection('login-attempts').doc();
         await newLog.set(attempt);
+    },
+    logCreateAccountAttempt: async function(attempt){
+        let newLog= await db.collection('createAccount-attempts').doc();
+        await newLog.set(attempt);
     }
 }

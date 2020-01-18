@@ -12,7 +12,8 @@ module.exports = function(app) {
 
     app.post('/api/createUser', createAccountLimit, async (req, res) => {
         let response = await authService.createUser(req);
-        res.send(response)
+        await loggerService.logCreateAccountAttempt(req, response);
+        res.status(response.status).send(response)
     });
 
     app.post('/api/logout', isAuthenticated, (req, res) => {

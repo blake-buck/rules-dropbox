@@ -42,7 +42,7 @@ module.exports = {
         let snapshot = await db.collection(CLOUD.credentialsCollection).where('username', '==', credentials.email).get()
         
         if(snapshot.size){
-            return 'USER ALREADY EXISTS WITH THAT EMAIL'
+            return {message:'USER ALREADY EXISTS WITH THAT EMAIL', status:409}
         }
         else{
             let newUserRef = await db.collection(CLOUD.credentialsCollection).doc(credentials.email);
@@ -53,10 +53,10 @@ module.exports = {
                     username:credentials.email,
                     password:hash
                 })
-                return 'NEW USER CREATED'
+                return {message:'NEW USER CREATED', status:200}
             }
             catch(e){
-                return 'ERROR CREATING NEW ACCOUNT'
+                return {message:'ERROR CREATING NEW ACCOUNT', status:500}
             }
 
         }

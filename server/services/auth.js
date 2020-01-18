@@ -24,7 +24,7 @@ module.exports = {
             return await authInterface.createUser(req)
         }
         else{
-            return 'CANT CREATE USER WITH INVALID CREDENTIALS'
+            return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
         }
     }
 }
