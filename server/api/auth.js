@@ -16,6 +16,11 @@ module.exports = function(app) {
         res.status(response.status).send(response)
     });
 
+    app.post('/api/resetPassword', async (req, res) => {
+        await authService.resetPassword();
+        res.status(200).send('Password reset');
+    })
+
     app.post('/api/logout', isAuthenticated, (req, res) => {
         req.session.destroy();
         res.send('YOU ARE NOW LOGGED OUT')

@@ -1,4 +1,4 @@
-const {loggerInterface} = require('../firestore/index')
+const {loggerInterface} = require('../interface/index')
 
 module.exports = {
     logLoginAttempt: async function(req, result){

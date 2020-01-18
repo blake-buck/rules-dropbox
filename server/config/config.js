@@ -14,6 +14,11 @@ const config = {
         accessPath:process.env.GOOGLE_APPLICATION_CREDENTIALS,
         projectId:process.env.PROJECT_ID,
         credentialsCollection:process.env.CREDENTIALS_COLLECTION
+    },
+    EMAIL:{
+        username:process.env.EMAILADDRESS,
+        password:process.env.EMAILPASSWORD,
+        service:process.env.EMAILSERVICE
     }
 }
 

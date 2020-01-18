@@ -1,5 +1,7 @@
-const {authInterface} = require('../firestore/index.js');
+const {authInterface} = require('../interface/index.js');
+const emailService = require('./email.js');
 const util = require('util');
+
 
 module.exports = {
     login: async function(req){
@@ -26,6 +28,9 @@ module.exports = {
         else{
             return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
         }
+    },
+    resetPassword: async function(req){
+        await emailService.sendEmail('test@test.com', 'UR MOM LMAO');
     }
 }
 
