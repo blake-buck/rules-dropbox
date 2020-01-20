@@ -1,6 +1,7 @@
 const Firestore = require('@google-cloud/firestore');
 const bcrypt = require('bcrypt');
 const {CLOUD} = require('../config/config.js');
+const emailInterface = require('./email');
 
 const db = new Firestore({
     projectId:CLOUD.projectId,
@@ -29,12 +30,34 @@ module.exports = {
 
         }
         else if(snapshot.size > 1){
+            // This should not happen unless something has gone really wrong
             return {message:'ERROR: TOO MANY ACCOUNTS SHARE THE SAME EMAIL', isAuthenticated:false, status:400}
         }
         else{
             return {message:'NO USER EXISTS WITH THAT EMAIL', isAuthenticated:false, status:400}
         }
 
+    },
+
+    resetPassword: async function(email){
+        let snapshot = await db.collection(CLOUD.credentialsCollection).where('username', '==', email).get();
+        if(snapshot.size === 1){
+            try{
+                await emailInterface.sendEmail(email, 'Rules-Dropbox Password Reset', 'Someone requested a password reset for your account.')
+                return {message:'FOLLOW INSTRUCTIONS IN EMAIL SENT TO GIVEN ADDRESS', status: 200}
+            }
+            catch(e){
+                console.log(e.message)
+                return {message:'ERROR OCCURED WHILE SENDING EMAIL. PLEASE TRY AGAIN.', status: 500}
+            }
+        }
+        else if(snapshot.size > 1){
+            // This should not happen unless something has gone really wrong
+            return {message:'ERROR: TOO MANY ACCOUNTS SHARE THE SAME EMAIL', status:400}
+        }
+        else{
+            return {message:'EMAIL DOES NOT EXIST IN SYSTEM', status: 400}
+        }
     },
 
     createUser:async function(req){

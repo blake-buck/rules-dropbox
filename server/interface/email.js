@@ -10,12 +10,12 @@ let transporter = nodemailer.createTransport({
 })
 
 module.exports = {
-    sendEmail: async function(){
+    sendEmail: async function(emailAddress, emailSubject, emailContent){
         let message = await transporter.sendMail({
             from: EMAIL.username,
-            to:EMAIL.username,
-            subject:'TESTING NODEMAILER',
-            message:'Do not worry, this is just a test'
+            to:emailAddress,
+            subject:emailSubject,
+            text:emailContent
         })
     }
 }

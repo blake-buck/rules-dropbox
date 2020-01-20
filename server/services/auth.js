@@ -29,8 +29,13 @@ module.exports = {
             return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
         }
     },
-    resetPassword: async function(req){
-        await emailService.sendEmail('test@test.com', 'UR MOM LMAO');
+    resetPassword: async function(email){
+        if(isValidEmail(email)){
+            return authInterface.resetPassword(email);
+        }
+        else{
+            return {message:'MUST ENTER A VALID EMAIL', status:400}
+        }
     }
 }
 

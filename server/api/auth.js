@@ -17,8 +17,8 @@ module.exports = function(app) {
     });
 
     app.post('/api/resetPassword', async (req, res) => {
-        await authService.resetPassword();
-        res.status(200).send('Password reset');
+        let response = await authService.resetPassword(req.body.emailAddress);
+        res.status(response.status).send(response);
     })
 
     app.post('/api/logout', isAuthenticated, (req, res) => {
