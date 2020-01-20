@@ -18,6 +18,7 @@ module.exports = function(app) {
 
     app.post('/api/resetPassword', async (req, res) => {
         let response = await authService.resetPassword(req.body.emailAddress);
+        await loggerService.logResetPasswordAttempt(req, response)
         res.status(response.status).send(response);
     })
 

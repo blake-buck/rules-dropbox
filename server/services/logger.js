@@ -21,5 +21,16 @@ module.exports = {
             message: result.message
         }
         loggerInterface.logCreateAccountAttempt(attempt);
+    },
+
+    logResetPasswordAttempt: async function(req, result){
+        const attempt = {
+            ip: req.ip,
+            time: new Date().toISOString(),
+            status: result.status,
+            message: result.message
+        }
+
+        loggerInterface.logResetPasswordAttempt(attempt);
     }
 }
