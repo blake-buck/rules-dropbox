@@ -39,24 +39,51 @@ module.exports = {
 
     },
 
-    resetPassword: async function(email){
+    resetPassword: async function(email, passwordReset){
         let snapshot = await db.collection(CLOUD.credentialsCollection).where('username', '==', email).get();
+        let passwordResetRef = await db.collection('password-reset-tokens').doc()
         if(snapshot.size === 1){
             try{
-                await emailInterface.sendEmail(email, 'Rules-Dropbox Password Reset', 'Someone requested a password reset for your account.')
-                return {message:'FOLLOW INSTRUCTIONS IN EMAIL SENT TO GIVEN ADDRESS', status: 200}
+                await emailInterface.sendEmail(email, 'Rules-Dropbox Password Reset', `Someone requested a password reset for your account. Use the following token: ${passwordReset.token}`)
             }
             catch(e){
                 console.log(e.message)
+                await passwordResetRef.set(passwordReset)
                 return {message:'ERROR OCCURED WHILE SENDING EMAIL. PLEASE TRY AGAIN.', status: 500}
             }
+
+            passwordReset.isValid = true;
+            await passwordResetRef.set(passwordReset)
+            return {message:'FOLLOW INSTRUCTIONS IN EMAIL SENT TO GIVEN ADDRESS', status: 200}
         }
         else if(snapshot.size > 1){
             // This should not happen unless something has gone really wrong
+            await passwordResetRef.set(passwordReset)
             return {message:'ERROR: TOO MANY ACCOUNTS SHARE THE SAME EMAIL', status:400}
         }
         else{
+            await passwordResetRef.set(passwordReset)
             return {message:'EMAIL DOES NOT EXIST IN SYSTEM', status: 400}
+        }
+    },
+
+    resetPasswordWithToken: async function(req){
+        const email = req.body.email;
+        const token = req.body.token;
+        const snapshot = await db.collection('password-reset-tokens').where('user', '==', email).where('token', '==', token).get();
+        if(snapshot.size === 1){
+            const data = snapshot.docs[0].data()
+            console.log(data)
+            if(data.isValid === false){
+                return {message:'PASSWORD TOKEN IS INVALID', status:400}
+            }
+            if(Date.now() > data.expires){
+                return {message:'PASSWORD TOKEN IS EXPIRED', status:400}
+            }
+            return {message:'PASSWORD TOKEN IS VALID, PROCEED TO SECURITY QUESTION', status:200}
+        }
+        else {
+            return {message:'INVALID EMAIL AND/OR TOKEN', status:400}
         }
     },
 

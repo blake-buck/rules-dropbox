@@ -22,6 +22,11 @@ module.exports = function(app) {
         res.status(response.status).send(response);
     })
 
+    app.post('/api/resetPassword/emailRecieved', async (req, res) => {
+        let response = await authService.resetPasswordWithToken(req);
+        res.status(response.status).send(response);
+    })
+
     app.post('/api/logout', isAuthenticated, (req, res) => {
         req.session.destroy();
         res.send('YOU ARE NOW LOGGED OUT')

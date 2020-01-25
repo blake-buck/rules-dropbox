@@ -2,6 +2,9 @@ const {authInterface} = require('../interface/index.js');
 const emailService = require('./email.js');
 const util = require('util');
 
+const UIDGenerator = require('uid-generator');
+const uidgen = new UIDGenerator();
+
 
 module.exports = {
     login: async function(req){
@@ -31,11 +34,23 @@ module.exports = {
     },
     resetPassword: async function(email){
         if(isValidEmail(email)){
-            return authInterface.resetPassword(email);
+            let passwordReset = {
+                token: await uidgen.generate(),
+                expires: Date.now() + 1000 * 60 + 10,
+                user:email,
+                isValid:false
+            }
+            return authInterface.resetPassword(email, passwordReset);
         }
         else{
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
+    },
+    resetPasswordWithToken: async function(req){
+        if(!isValidEmail(req.body.email)){
+            return {message:'MUST ENTER A VALID EMAIL', status:400}
+        }
+        return authInterface.resetPasswordWithToken(req);
     }
 }
 
