@@ -6,6 +6,7 @@ const emailInterface = require('./email');
 const userExists = require('./utils/userExists');
 const queryFirestore = require('./utils/queryFirestore');
 const createNewDocument = require('./utils/createNewDocument');
+const getDocumentReference = require('./utils/getDocumentReference');
 
 // For development purposes the authentication responses will be specific, but changed to more general messages when 
 // moved to production
@@ -45,6 +46,34 @@ module.exports = {
             return {message:'ERROR CREATING NEW ACCOUNT', status:500}
         }
 
+    },
+
+    createSecurityQuestion:async function(email, question, answer){
+        if(await !userExists(email)){
+            return {message:'EMAIL DOES NOT EXIST IN SYSTEM', status:400}
+        }
+        
+        const query = [
+            {field:'email', value:email}
+        ]
+        const userSnapshot = await queryFirestore(CLOUD.credentialsCollection, query);
+        const userData = userSnapshot.docs[0].data();
+        if(userData.securityQuestion){
+            return {message:'SECURITY QUESTION ALREADY EXISTS FOR THIS USER', status: 400}
+        }
+
+        const userReference = await getDocumentReference(CLOUD.credentialsCollection, email);
+        await userReference.set({'securityQuestion': question}, {merge:true})
+        try{
+            const salt = await bcrypt.genSalt(13);
+            const hash = await bcrypt.hash(answer, salt)
+            await userReference.set({'securityAnswer': hash}, {merge:true})
+        }
+        catch(e){
+            return {message:'ERROR HASHING SECURITY QUESTION', status:500}
+        }
+        
+        return {message: 'SECURITY QUESTION SET IN DB', status: 200}
     },
 
     resetPassword: async function(email, passwordReset){

@@ -23,6 +23,12 @@ module.exports = function(app) {
         res.status(response.status).send(response)
     });
 
+    app.post('/api/createSecurityQuestion', isAuthenticated, async (req, res) => {
+        const {question, answer} = req.body;
+        const response = await authService.createSecurityQuestion(req.session.userId, question, answer);
+        res.status(response.status).send(response)
+    });
+
     app.post('/api/resetPassword', async (req, res) => {
         const {email} = req.body;
         let response = await authService.resetPassword(email);
