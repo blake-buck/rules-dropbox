@@ -5,30 +5,39 @@ const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit} = req
 
 module.exports = function(app) {
     app.post('/api/login', loginRateLimit, loginSlowDown, async (req, res) => {
-        let response = await authService.login(req);
-        await loggerService.logLoginAttempt(req, response)
+        const {email, password} = req.body;
+        let response = await authService.login(email, password);
+        await loggerService.logLoginAttempt(email, req.ip, response)
+
+        if(response.isAuthenticated){
+            req.session.userId = email
+        }
+
         res.status(response.status).send(response)
     });
 
     app.post('/api/createUser', createAccountLimit, async (req, res) => {
-        let response = await authService.createUser(req);
-        await loggerService.logCreateAccountAttempt(req, response);
+        const {email, password} = req.body;
+        let response = await authService.createUser(email, password);
+        await loggerService.logCreateAccountAttempt(email, req.ip, response);
         res.status(response.status).send(response)
     });
 
     app.post('/api/resetPassword', async (req, res) => {
-        let response = await authService.resetPassword(req.body.emailAddress);
-        await loggerService.logResetPasswordAttempt(req, response)
+        const {email} = req.body;
+        let response = await authService.resetPassword(email);
+        await loggerService.logResetPasswordAttempt(email, req.ip, response)
         res.status(response.status).send(response);
     })
 
     app.post('/api/resetPassword/emailRecieved', async (req, res) => {
-        let response = await authService.resetPasswordWithToken(req);
+        const {email, token} = req.body;
+        let response = await authService.resetPasswordWithToken(email, token);
         res.status(response.status).send(response);
     })
 
     app.post('/api/logout', isAuthenticated, (req, res) => {
         req.session.destroy();
-        res.send('YOU ARE NOW LOGGED OUT')
+        res.status(200).send('YOU ARE NOW LOGGED OUT')
     })
 }

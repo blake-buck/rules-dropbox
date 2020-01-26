@@ -1,10 +1,10 @@
 const {loggerInterface} = require('../interface/index')
 
 module.exports = {
-    logLoginAttempt: async function(req, result){
+    logLoginAttempt: async function(email, ip, result){
         const attempt = {
-            ip:req.ip,
-            email:req.body.credentials.email,
+            ip,
+            email,
             time: new Date().toISOString(),
             status:result.status,
             message:result.message,
@@ -13,9 +13,10 @@ module.exports = {
         loggerInterface.logLoginAttempt(attempt);
     },
 
-    logCreateAccountAttempt: async function(req, result){
+    logCreateAccountAttempt: async function(email, ip, result){
         const attempt = {
-            ip: req.ip,
+            ip,
+            email,
             time: new Date().toISOString(),
             status: result.status,
             message: result.message
@@ -23,9 +24,10 @@ module.exports = {
         loggerInterface.logCreateAccountAttempt(attempt);
     },
 
-    logResetPasswordAttempt: async function(req, result){
+    logResetPasswordAttempt: async function(email, ip, result){
         const attempt = {
-            ip: req.ip,
+            ip,
+            email,
             time: new Date().toISOString(),
             status: result.status,
             message: result.message

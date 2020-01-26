@@ -7,15 +7,9 @@ const uidgen = new UIDGenerator();
 
 
 module.exports = {
-    login: async function(req){
-        if(isValidEmail(req.body.credentials.email) && isValidPassword(req.body.credentials.password)){
-            
-            let loginResults = await authInterface.login(req)
-            console.log('LOGIN RESULTS ', loginResults)
-
-            if(loginResults.isAuthenticated){
-                req.session.userId = req.body.credentials.email
-            }
+    login: async function(email, password){
+        if(isValidEmail(email) && isValidPassword(password)){
+            let loginResults = await authInterface.login(email, password)
 
             return loginResults
         }
@@ -23,10 +17,10 @@ module.exports = {
             return {message:'YOU MUST ENTER VALID CREDENTIALS', isAuthenticated:false, status:400}
         }
     },
-    createUser : async function(req){
-        if(isValidEmail(req.body.credentials.email) && isValidPassword(req.body.credentials.password)){
+    createUser : async function(email, password){
+        if(isValidEmail(email) && isValidPassword(password)){
             console.log('CREATING USER WITH GIVEN CREDENTIALS');
-            return await authInterface.createUser(req)
+            return await authInterface.createUser(email, password)
         }
         else{
             return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
@@ -37,7 +31,7 @@ module.exports = {
             let passwordReset = {
                 token: await uidgen.generate(),
                 expires: Date.now() + 1000 * 60 + 10,
-                user:email,
+                email,
                 isValid:false
             }
             return authInterface.resetPassword(email, passwordReset);
@@ -46,11 +40,11 @@ module.exports = {
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
     },
-    resetPasswordWithToken: async function(req){
-        if(!isValidEmail(req.body.email)){
+    resetPasswordWithToken: async function(email, token){
+        if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
-        return authInterface.resetPasswordWithToken(req);
+        return authInterface.resetPasswordWithToken(email);
     }
 }
 
