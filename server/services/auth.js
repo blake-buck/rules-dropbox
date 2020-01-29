@@ -42,7 +42,7 @@ module.exports = {
         if(isValidEmail(email)){
             let passwordReset = {
                 token: await uidgen.generate(),
-                expires: Date.now() + 1000 * 60 + 10,
+                expires: Date.now() + 1000 * 60 * 5,
                 email,
                 isValid:false
             }
@@ -56,7 +56,17 @@ module.exports = {
         if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
-        return authInterface.resetPasswordWithToken(email);
+        return authInterface.resetPasswordWithToken(email, token);
+    },
+
+    answerSecurityQuestion: async function(email, answer, token){
+        if(!isValidEmail(email)){
+            return {message:'MUST ENTER A VALID EMAIL', status:400}
+        }
+        if(!isValidSecurityAnswer(answer)){
+            return {message: 'SECURITY ANSWER IS INVALID', status:400}
+        }
+        return authInterface.answerSecurityQuestion(email, answer, token);
     }
 }
 

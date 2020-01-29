@@ -4,6 +4,7 @@ const {CLOUD} = require('../config/config.js');
 const emailInterface = require('./email');
 
 const userExists = require('./utils/userExists');
+const hasValidToken = require('./utils/hasValidToken');
 const queryFirestore = require('./utils/queryFirestore');
 const createNewDocument = require('./utils/createNewDocument');
 const getDocumentReference = require('./utils/getDocumentReference');
@@ -98,30 +99,54 @@ module.exports = {
     },
 
     resetPasswordWithToken: async function(email, token){
-        const query = [
-            {field:'email', value:email},
-            {field:'token', value:token}
+        const tokenObject = await hasValidToken(email, token);
+        if(tokenObject.status !== 200){
+            return tokenObject;
+        }
+
+        const credentialQuery = [
+            {field:'email', value:email}
         ]
-
-        let tokenSnapshot = await queryFirestore('password-reset-tokens', query);
-
-        if(tokenSnapshot.size !== 1){
-            return {message:'INVALID EMAIL AND/OR TOKEN', status:400}
+        let credentialSnapshot = await queryFirestore(CLOUD.credentialsCollection, credentialQuery);
+        
+        if(credentialSnapshot.size !== 1){
+            return {message: 'USER DOESN\'T EXIST', status:404}
+        }
+        const credentialData = await credentialSnapshot.docs[0].data();
+        if(!credentialData.securityQuestion){
+            return {message:'USER DOESN\'T HAVE A SECURITY QUESTION, CONTACT SYTSEM ADMINISTRATOR FOR ASSISTANCE', status:404}
         }
 
-        const data = tokenSnapshot.docs[0].data()
-
-        if(data.isValid === false){
-            return {message:'PASSWORD TOKEN IS INVALID', status:400}
-        }
-
-        if(Date.now() > data.expires){
-            return {message:'PASSWORD TOKEN IS EXPIRED', status:400}
-        }
-
-        return {message:'PASSWORD TOKEN IS VALID, PROCEED TO SECURITY QUESTION', status:200}
+        return {message:`SECURITY QUESTION: ${credentialData.securityQuestion}`, status:200}
 
     },
 
+    answerSecurityQuestion: async function(email, answer, token){
+
+        const tokenObject = await hasValidToken(email, token);
+        if(tokenObject.status !== 200){
+            return tokenObject;
+        }
+
+        const query = [
+            {field:'email', value:email}
+        ]
+        const credentialSnapshot = await queryFirestore(CLOUD.credentialsCollection, query);
+        if(credentialSnapshot.docs.length !== 1){
+            return {message:'ERROR FETCHING USER CREDENTIALS', status:400}
+        }
+        const credentialData = credentialSnapshot.docs[0].data();
+        if(!credentialData.securityQuestion || !credentialData.securityAnswer){
+            return {message:'USER DOES NOT HAVE SECURITY QUESTION/SECURITY ANSWER. CONTACT SYSTEM ADMIN FOR ASSISTANCE', status:404}
+        }
+
+        const compareResults = await bcrypt.compare(answer, credentialData.securityAnswer);
+        
+        if(!compareResults){
+            return {message: 'INVALID ANSWER TO SECURITY QUESTION', status:404}
+        }
+
+        return {message: 'VALID ANSWER TO SECURITY QUESTION. PROCEED TO PASSWORD RESET', status:200};
+    }
     
 }

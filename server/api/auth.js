@@ -1,9 +1,12 @@
 let authService = require('../services/auth');
 let loggerService = require('../services/logger');
 
-const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit} = require('./middleware/index');
+const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit, resetPasswordLimit} = require('./middleware/index');
 
 module.exports = function(app) {
+     // ************************************************ //
+    //            Standard User Operations              //
+   // ************************************************ //
     app.post('/api/login', loginRateLimit, loginSlowDown, async (req, res) => {
         const {email, password} = req.body;
         let response = await authService.login(email, password);
@@ -15,6 +18,15 @@ module.exports = function(app) {
 
         res.status(response.status).send(response)
     });
+
+    app.post('/api/logout', isAuthenticated, (req, res) => {
+        req.session.destroy();
+        res.status(200).send('YOU ARE NOW LOGGED OUT')
+    })
+
+     // ************************************************ //
+    //            Account Setup Operations              //
+   // ************************************************ //
 
     app.post('/api/createUser', createAccountLimit, async (req, res) => {
         const {email, password} = req.body;
@@ -29,12 +41,32 @@ module.exports = function(app) {
         res.status(response.status).send(response)
     });
 
-    app.post('/api/resetPassword', async (req, res) => {
+
+     // ************************************************ //
+    //            Password Reset Operations             //
+   // ************************************************ //
+
+
+    app.post('/api/resetPassword', resetPasswordLimit,  async (req, res) => {
         const {email} = req.body;
         let response = await authService.resetPassword(email);
         await loggerService.logResetPasswordAttempt(email, req.ip, response)
         res.status(response.status).send(response);
     })
+
+    app.get('/api/security-question', async (req, res) => {
+        const {email, token} = req.query;
+        let response = await authService.resetPasswordWithToken(email, token);
+        res.status(response.status).send(response);
+    })
+
+    app.post('/api/security-question/answer', async (req, res) => {
+        const {email, answer} = req.body;
+        const {token} = req.query;
+        const response = await authService.answerSecurityQuestion(email, answer, token);
+        res.status(response.status).send(response);
+    })
+    
 
     app.post('/api/resetPassword/emailRecieved', async (req, res) => {
         const {email, token} = req.body;
@@ -42,8 +74,5 @@ module.exports = function(app) {
         res.status(response.status).send(response);
     })
 
-    app.post('/api/logout', isAuthenticated, (req, res) => {
-        req.session.destroy();
-        res.status(200).send('YOU ARE NOW LOGGED OUT')
-    })
+    
 }
