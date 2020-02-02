@@ -10,6 +10,7 @@ const hasValidToken = require('./utils/hasValidToken');
 const queryFirestore = require('./utils/queryFirestore');
 const createNewDocument = require('./utils/createNewDocument');
 const getDocumentReference = require('./utils/getDocumentReference');
+const invalidatePasswordTokens = require('./utils/invalidatePasswordTokens');
 
 // For development purposes the authentication responses will be specific, but changed to more general messages when 
 // moved to production
@@ -147,22 +148,13 @@ module.exports = {
             return {message: 'INVALID ANSWER TO SECURITY QUESTION', status:404}
         }
 
-        const tokenQuery = [
-            {field:'email', value:email},
-            {field:'isValid', value:true}
-        ]
-        const tokens = await queryFirestore('password-reset-tokens', tokenQuery);
-        let documentIds = [];
-        tokens.forEach(token => documentIds.push(token.id))
         // When the user successfully answers a security question, all existing password reset tokens are invalidated
         // One final token is then created that can be used to reset the password
-        documentIds.forEach(async id => {
-            const tokenRef = await getDocumentReference('password-reset-tokens', id);
-            tokenRef.set({isValid:false}, {merge:true})
-        })
+        await invalidatePasswordTokens(email);
 
         let passwordReset = await generatePasswordReset(email);
         passwordReset.isValid = true;
+        passwordReset.isFinalToken = true;
 
         await createNewDocument('password-reset-tokens', passwordReset)
 
@@ -170,10 +162,15 @@ module.exports = {
     },
 
     resetPassword: async function(email, newPassword, token){
-        const tokenObject = await hasValidToken(email, token);
+        const tokenObject = await hasValidToken(email, token, true);
         if(tokenObject.status !== 200){
             return tokenObject
         } 
+
+        // After the user resets their password, the final token they just used needs to be invalidated
+        await invalidatePasswordTokens(email);
+
+
         try{
             const salt = await bcrypt.genSalt(13);
             const hash = await bcrypt.hash(newPassword, salt);

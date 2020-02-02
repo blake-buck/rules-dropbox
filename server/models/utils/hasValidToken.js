@@ -1,6 +1,6 @@
 const queryFirestore = require('./queryFirestore');
 
-module.exports = async function(email, token){
+module.exports = async function(email, token, mustBeFinal){
     const query = [
         {field:'email', value:email},
         {field:'token', value:token},
@@ -21,6 +21,10 @@ module.exports = async function(email, token){
 
     if(Date.now() > data.expires){
         return {message:'PASSWORD TOKEN IS EXPIRED', status:400}
+    }
+
+    if(mustBeFinal && !data.isFinalToken){
+        return {message:'TOKEN IS NOT FINAL', status:400}
     }
 
     return {message:'FILLER MESSAGE', status:200}
