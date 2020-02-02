@@ -1,5 +1,5 @@
 const rateLimit = require('express-rate-limit');
-const loggerService = require('../../services/logger');
+const loggerService = require('../../controllers/logger');
 
 module.exports = {
     resetPasswordLimit: rateLimit({

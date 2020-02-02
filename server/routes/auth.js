@@ -1,5 +1,5 @@
-let authService = require('../services/auth');
-let loggerService = require('../services/logger');
+let authService = require('../controllers/auth');
+let loggerService = require('../controllers/logger');
 
 const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit, resetPasswordLimit} = require('./middleware/index');
 
