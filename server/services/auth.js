@@ -1,9 +1,7 @@
 const {authInterface} = require('../interface/index.js');
-const emailService = require('./email.js');
+const generatePasswordReset = require('../interface/utils/generatePasswordReset');
 const util = require('util');
 
-const UIDGenerator = require('uid-generator');
-const uidgen = new UIDGenerator();
 
 
 module.exports = {
@@ -40,12 +38,7 @@ module.exports = {
     },
     resetPassword: async function(email){
         if(isValidEmail(email)){
-            let passwordReset = {
-                token: await uidgen.generate(),
-                expires: Date.now() + 1000 * 60 * 5,
-                email,
-                isValid:false
-            }
+            let passwordReset = await generatePasswordReset(email);
             return authInterface.resetPassword(email, passwordReset);
         }
         else{
@@ -58,7 +51,6 @@ module.exports = {
         }
         return authInterface.resetPasswordWithToken(email, token);
     },
-
     answerSecurityQuestion: async function(email, answer, token){
         if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
@@ -67,7 +59,18 @@ module.exports = {
             return {message: 'SECURITY ANSWER IS INVALID', status:400}
         }
         return authInterface.answerSecurityQuestion(email, answer, token);
+    },
+
+    resetPasswordSuccessfully: async function(email, newPassword, token){
+        if(!isValidEmail(email)){
+            return {message:'MUST ENTER VALID EMAIL', status:400}
+        }
+        if(!isValidPassword(newPassword)){
+            return {message: 'NEW PASSWORD MUST MEET STANDARDS', status:400}
+        }
+        return await authInterface.resetPasswordSuccessfully(email, newPassword, token);
     }
+
 }
 
 const textEncoder = new util.TextEncoder()

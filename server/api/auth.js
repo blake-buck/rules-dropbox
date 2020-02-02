@@ -54,6 +54,14 @@ module.exports = function(app) {
         res.status(response.status).send(response);
     })
 
+    app.post('/api/reset-password/token', async (req, res) => {
+        const {email, newPassword} = req.body;
+        const {token} = req.query;
+
+        let response = await authService.resetPasswordSuccessfully(email, newPassword, token);
+        res.status(response.status).send(response);
+    })
+
     app.get('/api/security-question', async (req, res) => {
         const {email, token} = req.query;
         let response = await authService.resetPasswordWithToken(email, token);

@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt');
 const {CLOUD} = require('../config/config.js');
 const emailInterface = require('./email');
 
+const generatePasswordReset = require('./utils/generatePasswordReset');
+
 const userExists = require('./utils/userExists');
 const hasValidToken = require('./utils/hasValidToken');
 const queryFirestore = require('./utils/queryFirestore');
@@ -122,7 +124,6 @@ module.exports = {
     },
 
     answerSecurityQuestion: async function(email, answer, token){
-
         const tokenObject = await hasValidToken(email, token);
         if(tokenObject.status !== 200){
             return tokenObject;
@@ -146,7 +147,45 @@ module.exports = {
             return {message: 'INVALID ANSWER TO SECURITY QUESTION', status:404}
         }
 
-        return {message: 'VALID ANSWER TO SECURITY QUESTION. PROCEED TO PASSWORD RESET', status:200};
+        const tokenQuery = [
+            {field:'email', value:email},
+            {field:'isValid', value:true}
+        ]
+        const tokens = await queryFirestore('password-reset-tokens', tokenQuery);
+        let documentIds = [];
+        tokens.forEach(token => documentIds.push(token.id))
+        // When the user successfully answers a security question, all existing password reset tokens are invalidated
+        // One final token is then created that can be used to reset the password
+        documentIds.forEach(async id => {
+            const tokenRef = await getDocumentReference('password-reset-tokens', id);
+            tokenRef.set({isValid:false}, {merge:true})
+        })
+
+        let passwordReset = await generatePasswordReset(email);
+        passwordReset.isValid = true;
+
+        await createNewDocument('password-reset-tokens', passwordReset)
+
+        return {message: 'VALID ANSWER TO SECURITY QUESTION. PROCEED TO PASSWORD RESET', token:passwordReset.token, status:200};
+    },
+
+    resetPasswordSuccessfully: async function(email, newPassword, token){
+        const tokenObject = await hasValidToken(email, token);
+        if(tokenObject.status !== 200){
+            return tokenObject
+        } 
+        try{
+            const salt = await bcrypt.genSalt(13);
+            const hash = await bcrypt.hash(newPassword, salt);
+
+            const userReference = await getDocumentReference(CLOUD.credentialsCollection, email);
+            await userReference.set({password: hash}, {merge:true});
+
+            return {message:'PASSWORD SUCCESSFULLY UPDATED', status:200}
+        }
+        catch(e){
+            return {message:'ERROR UPDATING PASSWORD', status:500}
+        }
     }
     
 }

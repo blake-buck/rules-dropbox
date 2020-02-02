@@ -3,7 +3,8 @@ const queryFirestore = require('./queryFirestore');
 module.exports = async function(email, token){
     const query = [
         {field:'email', value:email},
-        {field:'token', value:token}
+        {field:'token', value:token},
+        {field:'isValid', value:true}
     ]
 
     let tokenSnapshot = await queryFirestore('password-reset-tokens', query);
