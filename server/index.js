@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const session = require('express-session');
 
 const {APPLICATION} = require('./config/config.js')
-const useRoutes = require('./api/index.js');
+const useRoutes = require('./routes/index.js');
 
 const {FirestoreStore} = require('@google-cloud/connect-firestore');
 const {Firestore} = require('@google-cloud/firestore');

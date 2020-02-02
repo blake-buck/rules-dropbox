@@ -1,4 +1,4 @@
-const {isAuthenticated} = require('./isAuthenticated.js.js');
+const {isAuthenticated} = require('./isAuthenticated.js');
 const {loginRateLimit} = require('./loginRateLimit');
 const {loginSlowDown} = require('./loginSlowDown');
 const {createAccountLimit} = require('./createAccountLimit');
