@@ -28,14 +28,16 @@ module.exports = function(app) {
     //            Account Setup Operations              //
    // ************************************************ //
 
-    app.post('/api/createUser', createAccountLimit, async (req, res) => {
+    // create user
+    app.post('/api/user', createAccountLimit, async (req, res) => {
         const {email, password} = req.body;
         let response = await authController.createUser(email, password);
         await loggerController.logCreateAccountAttempt(email, req.ip, response);
         res.status(response.status).send(response)
     });
 
-    app.post('/api/createSecurityQuestion', isAuthenticated, async (req, res) => {
+    // create security questions
+    app.post('/api/security-question', isAuthenticated, async (req, res) => {
         const {question, answer} = req.body;
         const response = await authController.createSecurityQuestion(req.session.userId, question, answer);
         res.status(response.status).send(response)
@@ -47,40 +49,35 @@ module.exports = function(app) {
    // ************************************************ //
 
 
-    app.post('/api/resetPassword', resetPasswordLimit,  async (req, res) => {
+    app.post('/api/reset-password/email', resetPasswordLimit,  async (req, res) => {
         const {email} = req.body;
-        let response = await authController.resetPassword(email);
+        let response = await authController.sendPasswordResetEmail(email);
         await loggerController.logResetPasswordAttempt(email, req.ip, response)
         res.status(response.status).send(response);
     })
 
-    app.post('/api/reset-password/token', async (req, res) => {
-        const {email, newPassword} = req.body;
-        const {token} = req.query;
-
-        let response = await authController.resetPasswordSuccessfully(email, newPassword, token);
-        res.status(response.status).send(response);
-    })
-
-    app.get('/api/security-question', async (req, res) => {
+    app.get('/api/reset-password/security-question', async (req, res) => {
         const {email, token} = req.query;
-        let response = await authController.resetPasswordWithToken(email, token);
+        let response = await authController.getSecurityQuestion(email, token);
         res.status(response.status).send(response);
     })
 
-    app.post('/api/security-question/answer', async (req, res) => {
+    app.post('/api/reset-password/security-question', async (req, res) => {
         const {email, answer} = req.body;
         const {token} = req.query;
         const response = await authController.answerSecurityQuestion(email, answer, token);
         res.status(response.status).send(response);
     })
-    
 
-    app.post('/api/resetPassword/emailRecieved', async (req, res) => {
-        const {email, token} = req.body;
-        let response = await authController.resetPasswordWithToken(email, token);
+    // user (or bad actor) can simply hit the reset-password email route, and then hit this endpoint with that token with no problems, completely bypassing the security question aspect of this flow
+    app.post('/api/reset-password', async (req, res) => {
+        const {email, newPassword} = req.body;
+        const {token} = req.query;
+
+        let response = await authController.resetPassword(email, newPassword, token);
         res.status(response.status).send(response);
     })
 
     
+
 }

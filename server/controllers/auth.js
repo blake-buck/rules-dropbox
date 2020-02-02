@@ -15,6 +15,8 @@ module.exports = {
             return {message:'YOU MUST ENTER VALID CREDENTIALS', isAuthenticated:false, status:400}
         }
     },
+
+
     createUser : async function(email, password){
         if(isValidEmail(email) && isValidPassword(password)){
             console.log('CREATING USER WITH GIVEN CREDENTIALS');
@@ -24,6 +26,8 @@ module.exports = {
             return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
         }
     },
+
+
     createSecurityQuestion: async function(email, question, answer){
         if(!isValidEmail(email)){
             return {message:'USER\'S EMAIL IS INVALID', status:400}
@@ -36,21 +40,27 @@ module.exports = {
         }
         return await authModel.createSecurityQuestion(email, question, answer);
     },
-    resetPassword: async function(email){
+
+
+    sendPasswordResetEmail: async function(email){
         if(isValidEmail(email)){
             let passwordReset = await generatePasswordReset(email);
-            return authModel.resetPassword(email, passwordReset);
+            return authModel.sendPasswordResetEmail(email, passwordReset);
         }
         else{
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
     },
-    resetPasswordWithToken: async function(email, token){
+
+
+    getSecurityQuestion: async function(email, token){
         if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
-        return authModel.resetPasswordWithToken(email, token);
+        return authModel.getSecurityQuestion(email, token);
     },
+
+
     answerSecurityQuestion: async function(email, answer, token){
         if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
@@ -61,15 +71,17 @@ module.exports = {
         return authModel.answerSecurityQuestion(email, answer, token);
     },
 
-    resetPasswordSuccessfully: async function(email, newPassword, token){
+
+    resetPassword: async function(email, newPassword, token){
         if(!isValidEmail(email)){
             return {message:'MUST ENTER VALID EMAIL', status:400}
         }
         if(!isValidPassword(newPassword)){
             return {message: 'NEW PASSWORD MUST MEET STANDARDS', status:400}
         }
-        return await authModel.resetPasswordSuccessfully(email, newPassword, token);
+        return await authModel.resetPassword(email, newPassword, token);
     }
+
 
 }
 

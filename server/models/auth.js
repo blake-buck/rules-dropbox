@@ -79,7 +79,7 @@ module.exports = {
         return {message: 'SECURITY QUESTION SET IN DB', status: 200}
     },
 
-    resetPassword: async function(email, passwordReset){
+    sendPasswordResetEmail: async function(email, passwordReset){
         if(await !userExists(email)){
             await createNewDocument('password-reset-tokens', passwordReset);
             return {message:'EMAIL DOES NOT EXIST IN SYSTEM', status: 400}
@@ -100,7 +100,7 @@ module.exports = {
         return {message:'FOLLOW INSTRUCTIONS IN EMAIL SENT TO GIVEN ADDRESS', status: 200}
     },
 
-    resetPasswordWithToken: async function(email, token){
+    getSecurityQuestion: async function(email, token){
         const tokenObject = await hasValidToken(email, token);
         if(tokenObject.status !== 200){
             return tokenObject;
@@ -169,7 +169,7 @@ module.exports = {
         return {message: 'VALID ANSWER TO SECURITY QUESTION. PROCEED TO PASSWORD RESET', token:passwordReset.token, status:200};
     },
 
-    resetPasswordSuccessfully: async function(email, newPassword, token){
+    resetPassword: async function(email, newPassword, token){
         const tokenObject = await hasValidToken(email, token);
         if(tokenObject.status !== 200){
             return tokenObject

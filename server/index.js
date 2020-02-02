@@ -19,6 +19,13 @@ app.use(express.json());
 
 app.use(
     session({
+
+        store: new FirestoreStore({
+            dataset: new Firestore({
+                kind:'express-sessions'
+            })
+        }),
+
         secret:APPLICATION.sessionSecret,
         name:APPLICATION.sessionName,
         key:APPLICATION.sessionKey,
@@ -29,13 +36,8 @@ app.use(
             sameSite:true,
             secure:false,
             maxAge:1000 * 60 * 60
-        },
+        }
 
-        store: new FirestoreStore({
-            dataset: new Firestore({
-                kind:'express-sessions'
-            })
-        })
     })
 )
 
