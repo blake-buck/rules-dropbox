@@ -1,7 +1,7 @@
-const {emailInterface} = require('../models/index');
+const {emailModel} = require('../models/index');
 
 module.exports = {
     sendEmail: function(emailAddress, emailContent){
-        emailInterface.sendEmail(emailAddress, emailContent);
+        emailModel.sendEmail(emailAddress, emailContent);
     }
 }

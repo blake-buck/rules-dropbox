@@ -1,4 +1,4 @@
-const {authInterface} = require('../models/index.js');
+const {authModel} = require('../models/index.js');
 const generatePasswordReset = require('../models/utils/generatePasswordReset');
 const util = require('util');
 
@@ -7,7 +7,7 @@ const util = require('util');
 module.exports = {
     login: async function(email, password){
         if(isValidEmail(email) && isValidPassword(password)){
-            let loginResults = await authInterface.login(email, password)
+            let loginResults = await authModel.login(email, password)
 
             return loginResults
         }
@@ -18,7 +18,7 @@ module.exports = {
     createUser : async function(email, password){
         if(isValidEmail(email) && isValidPassword(password)){
             console.log('CREATING USER WITH GIVEN CREDENTIALS');
-            return await authInterface.createUser(email, password)
+            return await authModel.createUser(email, password)
         }
         else{
             return {message:'CANT CREATE USER WITH INVALID CREDENTIALS', status:400}
@@ -34,12 +34,12 @@ module.exports = {
         if(!isValidSecurityAnswer(answer)){
             return {message: 'SECURITY ANSWER IS INVALID', status:400}
         }
-        return await authInterface.createSecurityQuestion(email, question, answer);
+        return await authModel.createSecurityQuestion(email, question, answer);
     },
     resetPassword: async function(email){
         if(isValidEmail(email)){
             let passwordReset = await generatePasswordReset(email);
-            return authInterface.resetPassword(email, passwordReset);
+            return authModel.resetPassword(email, passwordReset);
         }
         else{
             return {message:'MUST ENTER A VALID EMAIL', status:400}
@@ -49,7 +49,7 @@ module.exports = {
         if(!isValidEmail(email)){
             return {message:'MUST ENTER A VALID EMAIL', status:400}
         }
-        return authInterface.resetPasswordWithToken(email, token);
+        return authModel.resetPasswordWithToken(email, token);
     },
     answerSecurityQuestion: async function(email, answer, token){
         if(!isValidEmail(email)){
@@ -58,7 +58,7 @@ module.exports = {
         if(!isValidSecurityAnswer(answer)){
             return {message: 'SECURITY ANSWER IS INVALID', status:400}
         }
-        return authInterface.answerSecurityQuestion(email, answer, token);
+        return authModel.answerSecurityQuestion(email, answer, token);
     },
 
     resetPasswordSuccessfully: async function(email, newPassword, token){
@@ -68,7 +68,7 @@ module.exports = {
         if(!isValidPassword(newPassword)){
             return {message: 'NEW PASSWORD MUST MEET STANDARDS', status:400}
         }
-        return await authInterface.resetPasswordSuccessfully(email, newPassword, token);
+        return await authModel.resetPasswordSuccessfully(email, newPassword, token);
     }
 
 }

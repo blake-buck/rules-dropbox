@@ -1,5 +1,5 @@
-let authService = require('../controllers/auth');
-let loggerService = require('../controllers/logger');
+let authController = require('../controllers/auth');
+let loggerController = require('../controllers/logger');
 
 const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit, resetPasswordLimit} = require('./middleware/index');
 
@@ -9,8 +9,8 @@ module.exports = function(app) {
    // ************************************************ //
     app.post('/api/login', loginRateLimit, loginSlowDown, async (req, res) => {
         const {email, password} = req.body;
-        let response = await authService.login(email, password);
-        await loggerService.logLoginAttempt(email, req.ip, response)
+        let response = await authController.login(email, password);
+        await loggerController.logLoginAttempt(email, req.ip, response)
 
         if(response.isAuthenticated){
             req.session.userId = email
@@ -30,14 +30,14 @@ module.exports = function(app) {
 
     app.post('/api/createUser', createAccountLimit, async (req, res) => {
         const {email, password} = req.body;
-        let response = await authService.createUser(email, password);
-        await loggerService.logCreateAccountAttempt(email, req.ip, response);
+        let response = await authController.createUser(email, password);
+        await loggerController.logCreateAccountAttempt(email, req.ip, response);
         res.status(response.status).send(response)
     });
 
     app.post('/api/createSecurityQuestion', isAuthenticated, async (req, res) => {
         const {question, answer} = req.body;
-        const response = await authService.createSecurityQuestion(req.session.userId, question, answer);
+        const response = await authController.createSecurityQuestion(req.session.userId, question, answer);
         res.status(response.status).send(response)
     });
 
@@ -49,8 +49,8 @@ module.exports = function(app) {
 
     app.post('/api/resetPassword', resetPasswordLimit,  async (req, res) => {
         const {email} = req.body;
-        let response = await authService.resetPassword(email);
-        await loggerService.logResetPasswordAttempt(email, req.ip, response)
+        let response = await authController.resetPassword(email);
+        await loggerController.logResetPasswordAttempt(email, req.ip, response)
         res.status(response.status).send(response);
     })
 
@@ -58,27 +58,27 @@ module.exports = function(app) {
         const {email, newPassword} = req.body;
         const {token} = req.query;
 
-        let response = await authService.resetPasswordSuccessfully(email, newPassword, token);
+        let response = await authController.resetPasswordSuccessfully(email, newPassword, token);
         res.status(response.status).send(response);
     })
 
     app.get('/api/security-question', async (req, res) => {
         const {email, token} = req.query;
-        let response = await authService.resetPasswordWithToken(email, token);
+        let response = await authController.resetPasswordWithToken(email, token);
         res.status(response.status).send(response);
     })
 
     app.post('/api/security-question/answer', async (req, res) => {
         const {email, answer} = req.body;
         const {token} = req.query;
-        const response = await authService.answerSecurityQuestion(email, answer, token);
+        const response = await authController.answerSecurityQuestion(email, answer, token);
         res.status(response.status).send(response);
     })
     
 
     app.post('/api/resetPassword/emailRecieved', async (req, res) => {
         const {email, token} = req.body;
-        let response = await authService.resetPasswordWithToken(email, token);
+        let response = await authController.resetPasswordWithToken(email, token);
         res.status(response.status).send(response);
     })
 

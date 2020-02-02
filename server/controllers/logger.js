@@ -1,4 +1,4 @@
-const {loggerInterface} = require('../models/index')
+const {loggerModel} = require('../models/index')
 
 module.exports = {
     logLoginAttempt: async function(email, ip, result){
@@ -10,7 +10,7 @@ module.exports = {
             message:result.message,
             isAuthenticated:Boolean(result.isAuthenticated)
         }
-        loggerInterface.logLoginAttempt(attempt);
+        loggerModel.logLoginAttempt(attempt);
     },
 
     logCreateAccountAttempt: async function(email, ip, result){
@@ -21,7 +21,7 @@ module.exports = {
             status: result.status,
             message: result.message
         }
-        loggerInterface.logCreateAccountAttempt(attempt);
+        loggerModel.logCreateAccountAttempt(attempt);
     },
 
     logResetPasswordAttempt: async function(email, ip, result){
@@ -33,6 +33,6 @@ module.exports = {
             message: result.message
         }
 
-        loggerInterface.logResetPasswordAttempt(attempt);
+        loggerModel.logResetPasswordAttempt(attempt);
     }
 }
