@@ -1,7 +1,7 @@
 let authController = require('../controllers/auth');
 let loggerController = require('../controllers/logger');
 
-const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit, resetPasswordLimit} = require('./middleware/index');
+const {isAuthenticated, loginRateLimit, loginSlowDown, createAccountLimit, resetPasswordLimit, emailResetLimit, answerSecurityQuestionLimit, getSecurityQuestionSlowDown} = require('./middleware/index');
 
 module.exports = function(app) {
      // ************************************************ //
@@ -49,28 +49,27 @@ module.exports = function(app) {
    // ************************************************ //
 
 
-    app.post('/api/reset-password/email', resetPasswordLimit,  async (req, res) => {
+    app.post('/api/reset-password/email', emailResetLimit,  async (req, res) => {
         const {email} = req.body;
         let response = await authController.sendPasswordResetEmail(email);
         await loggerController.logResetPasswordAttempt(email, req.ip, response)
         res.status(response.status).send(response);
     })
 
-    app.get('/api/reset-password/security-question', async (req, res) => {
+    app.get('/api/reset-password/security-question', getSecurityQuestionSlowDown, async (req, res) => {
         const {email, token} = req.query;
         let response = await authController.getSecurityQuestion(email, token);
         res.status(response.status).send(response);
     })
 
-    app.post('/api/reset-password/security-question', async (req, res) => {
+    app.post('/api/reset-password/security-question', answerSecurityQuestionLimit, async (req, res) => {
         const {email, answer} = req.body;
         const {token} = req.query;
         const response = await authController.answerSecurityQuestion(email, answer, token);
         res.status(response.status).send(response);
     })
 
-    // user (or bad actor) can simply hit the reset-password email route, and then hit this endpoint with that token with no problems, completely bypassing the security question aspect of this flow
-    app.post('/api/reset-password', async (req, res) => {
+    app.post('/api/reset-password', resetPasswordLimit, async (req, res) => {
         const {email, newPassword} = req.body;
         const {token} = req.query;
 
