@@ -1,4 +1,4 @@
-const {emailInterface} = require('../interface/index');
+const {emailInterface} = require('../models/index');
 
 module.exports = {
     sendEmail: function(emailAddress, emailContent){

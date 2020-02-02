@@ -1,5 +1,5 @@
-const {authInterface} = require('../interface/index.js');
-const generatePasswordReset = require('../interface/utils/generatePasswordReset');
+const {authInterface} = require('../models/index.js');
+const generatePasswordReset = require('../models/utils/generatePasswordReset');
 const util = require('util');
 
 

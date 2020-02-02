@@ -1,4 +1,4 @@
-const {loggerInterface} = require('../interface/index')
+const {loggerInterface} = require('../models/index')
 
 module.exports = {
     logLoginAttempt: async function(email, ip, result){
