@@ -80,6 +80,22 @@ module.exports = {
             return {message: 'NEW PASSWORD MUST MEET STANDARDS', status:400}
         }
         return await authModel.resetPassword(email, newPassword, token);
+    },
+
+
+    updatePassword: async function(email, password, newPassword){
+        if(!isValidEmail(email)){
+            return {message:'MUST ENTER VALID EMAIL', status:400}
+        }
+        if(!isValidPassword(password)){
+            return {message: 'PASSWORD MUST MEET STANDARDS', status:400}
+        }
+        if(!isValidPassword(newPassword)){
+            return {message: 'NEW PASSWORD MUST MEET STANDARDS', status:400}
+        }
+
+        return await authModel.updatePassword(email, password, newPassword);
+
     }
 
 

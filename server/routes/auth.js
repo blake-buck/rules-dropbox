@@ -29,7 +29,7 @@ module.exports = function(app) {
    // ************************************************ //
 
     // create user
-    app.post('/api/user', createAccountLimit, async (req, res) => {
+    app.post('/api/user', createAccountLimit, isAuthenticated, async (req, res) => {
         const {email, password} = req.body;
         let response = await authController.createUser(email, password);
         await loggerController.logCreateAccountAttempt(email, req.ip, response);
@@ -77,6 +77,12 @@ module.exports = function(app) {
         res.status(response.status).send(response);
     })
 
+    app.post('/api/update-password', isAuthenticated, async (req, res) => {
+        const email = req.session.userId;
+        const {password, newPassword} = req.body;
+        const response = await authController.updatePassword(email, password, newPassword);
+        res.status(response.status).send(response);
+    })
     
 
 }

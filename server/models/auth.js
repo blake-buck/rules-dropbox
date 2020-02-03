@@ -1,7 +1,7 @@
 const Firestore = require('@google-cloud/firestore');
 const bcrypt = require('bcrypt');
 const {CLOUD} = require('../config/config.js');
-const emailInterface = require('./email');
+const emailModel = require('./email');
 
 const generatePasswordReset = require('./utils/generatePasswordReset');
 
@@ -87,7 +87,7 @@ module.exports = {
         }
 
         try{
-            await emailInterface.sendEmail(email, 'Rules-Dropbox Password Reset', `Someone requested a password reset for your account. Use the following token: ${passwordReset.token}`)
+            await emailModel.sendEmail(email, 'Rules-Dropbox Password Reset', `Someone requested a password reset for your account. Use the following token: ${passwordReset.token}`)
         }
         catch(e){
             console.log(e.message)
@@ -178,11 +178,44 @@ module.exports = {
             const userReference = await getDocumentReference(CLOUD.credentialsCollection, email);
             await userReference.set({password: hash}, {merge:true});
 
+            await emailModel.sendEmail(email, 'Rules-Dropbox Password Reset', 'Your Rules-Dropbox password has been sucessfully reset. If you didn\'t do this, immediately contact the site admin.')
             return {message:'PASSWORD SUCCESSFULLY UPDATED', status:200}
         }
         catch(e){
             return {message:'ERROR UPDATING PASSWORD', status:500}
         }
+    },
+
+    updatePassword: async function(email, password, newPassword){
+        if(!await userExists(email)){
+            return {message:'USER DOES NOT EXIST', status:404}
+        }
+
+        const userReference = await getDocumentReference(CLOUD.credentialsCollection, email);
+        const userSnapshot = await userReference.get();
+        const data = userSnapshot.data()
+
+
+        try{
+            let areSame = await bcrypt.compare(password, data.password);
+            if(!areSame){
+                return {message:'PASSWORDS DO NOT MATCH', status:400}
+            }
+        }
+        catch(e){
+            return {message: 'ERROR COMPARING PASSWORDS', status:500}
+        }
+        
+        try{
+            const hash = await bcrypt.hash(newPassword, 13);
+            await userReference.set({password:hash}, {merge:true})
+            await emailModel.sendEmail(email, 'Rules-Dropbox Password Update', 'Your Rules-Dropbox password has been sucessfully updated. If you didn\'t do this, immediately contact the site admin.')
+            return {message:'PASSWORD UPDATED SUCCESSFULLY', status:200}
+        }
+        catch(e){
+            return {message:'ERROR HASHING NEW PASSWORDS', status:500}
+        }
+
     }
     
 }
